@@ -1,0 +1,90 @@
+/* 置顶栏样式 */
+.topbar {
+  background-color: #333;
+  color: #fff;
+  padding: 10px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 1; /* 添加 z-index 控制置顶 */
+}
+
+/* 输入框样式 */
+.input-box {
+  position: fixed;
+  bottom: 20px; /* 调整位置，与按钮对齐 */
+  left: 15px; /* 调整与按钮的间隔为3px */
+  width: calc(100% - 123px); /* 调整宽度，减去按钮宽度和左右间隔 */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* 按钮样式 */
+.send-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 18px; /* 调整与输入框的间隔为3px */
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  opacity: 0.7;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.send-btn:hover {
+  opacity: 1;
+}
+
+/* 聊天气泡容器样式 */
+.bubble-container {
+  display: flex;
+  align-items: flex-start;
+  margin: 10px 0;
+}
+
+/* 用户发送的信息样式 */
+.user-bubble {
+  background-color: #44c384; /* 修改用户发送信息的颜色为绿色 */
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  margin-left: auto; /* 让用户发送的气泡靠右对齐 */
+  margin-right: 7px; /* 修改用户发送信息的margin-right为7px */
+}
+
+/* 自动回复的信息样式 */
+.auto-reply-bubble {
+  background-color: #f0f0f0;
+  color: #000;
+  padding: 10px;
+  border-radius: 5px;
+  margin-left: 7px; /* 修改自动回复信息的margin-left为7px */
+}
+
+/* 头像样式 */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 7px; /* 修改头像的margin-right为7px */
+}
+
+/* 清除浮动样式 */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* 聊天容器样式 */
+#chatContainer {
+  margin-top: 60px;
+  margin-bottom: 60px;
+  overflow-y: scroll;
+  height: calc(100vh - 120px);
+}
