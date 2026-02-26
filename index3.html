@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>shark OS操作系统</title>
+	<script src="wc-3.0.6.min.js"></script>
+  </head>
+  <body>	
+	<script>
+   	  wc.alertDialog({
+        title: '提示',
+        content: '欢迎使用 shark OS操作系统！',
+        ok: '确定',
+        okFun: function (){
+          wc.alert('纯看动画的');      
+        }
+      });
+	</script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebCat Animation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* 防止滚动条出现 */
+            position: relative; /* 设置相对定位 */
+            background-color: #f0f0f0;
+            height: 100vh; /* 设置页面高度为视口高度 */
+            background-image: url('2.jpg'); /* 设置背景图片 */
+            background-size: cover; /* 背景图片覆盖整个页面 */
+            background-position: center; /* 背景图片居中 */
+        }
+
+        #catImage {
+            position: absolute;
+            top: 10px; /* 初始位置：左上角 */
+            left: 10px;
+            width: 60px; /* 初始宽度 */
+            height: 60px; /* 初始高度 */
+            cursor: pointer;
+            transition: transform 2s ease, filter 2s ease, width 2s ease, height 2s ease; /* 平滑过渡效果 */
+            border-radius: 10px; /* 设置图片圆角 */
+        }
+
+        #triggerButton {
+            position: absolute;
+            top: 10px; /* 按钮位置与图片初始位置相同 */
+            left: 10px;
+            width: 60px; /* 按钮大小与图片初始大小相同 */
+            height: 60px;
+            background: transparent; /* 按钮透明 */
+            border: none;
+            cursor: pointer;
+            z-index: 10; /* 确保按钮在图片上方 */
+        }
+
+        #exitButton {
+            position: absolute;
+            bottom: 50px; /* 按钮位置：屏幕中下方 */
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #ff6347; /* 按钮背景颜色 */
+            color: white; /* 按钮文字颜色 */
+            border: none;
+            border-radius: 5px; /* 按钮圆角 */
+        }
+    </style>
+</head>
+<body>
+    <!-- 触发图片动画的透明按钮 -->
+    <button id="triggerButton"></button>
+    <!-- 替换为你自己的图片路径 -->
+    <img id="catImage" src="1.jpg" alt="Cat Image">
+    <button id="exitButton">退出</button>
+
+    <script>
+        // 获取图片和按钮元素
+        const catImage = document.getElementById('catImage');
+        const triggerButton = document.getElementById('triggerButton');
+        const exitButton = document.getElementById('exitButton');
+
+        // 定义图片的初始状态
+        const initialPosition = { top: '10px', left: '10px' };
+        const initialWidth = '60px'; // 初始宽度
+        const initialHeight = '60px'; // 初始高度
+
+        // 点击透明按钮时触发动画
+        triggerButton.addEventListener('click', () => {
+            // 设置图片移动到屏幕中间并自定义宽度和高度
+            catImage.style.transform = 'translate(-5vw,-20vh)'; // 移动到屏幕中间
+            catImage.style.width = '500px'; // 自定义宽度
+            catImage.style.height = '1000px'; // 自定义高度
+            catImage.style.filter = 'brightness(100)'; // 图片变成白色（亮度调到最高）
+        });
+
+        // 点击退出按钮时重置图片
+        exitButton.addEventListener('click', () => {
+            // 恢复到初始位置、大小和原图
+            catImage.style.transform = `translate(0, 0)`; // 恢复到初始位置
+            catImage.style.width = initialWidth; // 恢复到初始宽度
+            catImage.style.height = initialHeight; // 恢复到初始高度
+            catImage.style.filter = 'brightness(1)'; // 恢复图片原色
+        });
+    </script>
+</body>
+</html>
