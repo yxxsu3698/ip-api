@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yxxsu OS</title>
+    <!-- 图标库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* 全局基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* 系统桌面背景 */
+        #yxxsu-os {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        /* 桌面图标区域 */
+        #desktop-shortcuts {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 56px);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 15px;
+            z-index: 1;
+        }
+
+        .desktop-icon {
+            width: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .desktop-icon:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .desktop-icon .icon {
+            width: 48px;
+            height: 48px;
+            font-size: 40px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .desktop-icon .name {
+            font-size: 12px;
+            color: white;
+            text-align: center;
+            line-height: 1.2;
+            word-break: break-all;
+        }
+
+        /* 任务栏样式 */
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 56px;
+            background: rgba(15, 15, 30, 0.7);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 9999;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .taskbar-left, .taskbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 100%;
+        }
+
+        .taskbar-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 100%;
+            max-width: 60%;
+            overflow-x: auto;
+            padding: 8px 0;
+        }
+
+        .taskbar-center::-webkit-scrollbar {
+            display: none;
+        }
+
+        #start-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #start-btn:hover, #start-btn.show {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .taskbar-app-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .taskbar-app-item:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .taskbar-app-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .taskbar-app-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 30px;
+            height: 3px;
+            background-color: #6366f1;
+            border-radius: 2px;
+        }
+
+        .taskbar-app-item.min::after {
+            width: 8px;
+        }
+
+        #time-display {
+            color: white;
+            font-size: 13px;
+            text-align: right;
+            line-height: 1.3;
+            padding: 0 10px;
+        }
+
+        #show-desktop {
+            width: 4px;
+            height: 36px;
+            border-left: 2px solid rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        #show-desktop:hover {
+            border-color: white;
+        }
+
+        /* 开始菜单样式 */
+        #start-menu {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.95);
+            width: 680px;
+            height: 720px;
+            max-height: calc(100vh - 100px);
+            background: rgba(20, 20, 40, 0.85);
+            backdrop-filter: blur(30px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 9998;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #start-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) scale(1);
+            bottom: 76px;
+        }
+
+        .start-menu-sidebar {
+            width: 70px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+        }
+
+        .start-menu-sidebar .sidebar-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 10px;
+        }
+
+        .start-menu-sidebar .sidebar-btn:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .start-menu-main {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .start-menu-main::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .start-menu-main::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .start-menu-main::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .start-menu-search {
+            width: 100%;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .start-menu-search i {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+        }
+
+        .start-menu-search input {
+            flex: 1;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 15px;
+        }
+
+        .start-menu-search input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .menu-section-title {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .app-grid-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .app-grid-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .app-grid-item.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .app-grid-item .app-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 24px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-grid-item .app-name {
+            color: white;
+            font-size: 14px;
+        }
+
+        /* 窗口通用样式 */
+        .window {
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            width: 800px;
+            height: 600px;
+            max-width: 95vw;
+            max-height: 85vh;
+            background: rgba(30, 30, 50, 0.85);
+            backdrop-filter: blur(30px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .window.show-begin {
+            display: flex;
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        .window.show {
+            opacity: 1;
+            transform: scale(1);
+            transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .window.max {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: calc(100% - 56px) !important;
+            border-radius: 0;
+            transition: all 0.2s ease;
+        }
+
+        .window.min {
+            display: none !important;
+        }
+
+        /* 窗口标题栏 */
+        .window-titlebar {
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            cursor: move;
+            flex-shrink: 0;
+        }
+
+        .titlebar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .titlebar-icon {
+            font-size: 18px;
+            color: white;
+        }
+
+        .titlebar-name {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .titlebar-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .window-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .window-btn:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .window-btn.close:hover {
+            background-color: #ef4444;
+        }
+
+        /* 窗口内容区域 */
+        .window-content {
+            flex: 1;
+            overflow: hidden;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .window.max .window-content {
+            border-radius: 0;
+        }
+
+        /* 计算器样式 */
+        #calc-window .window-content {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        #calc-input {
+            width: 100%;
+            height: 80px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 48px;
+            text-align: right;
+            padding: 0 10px;
+            margin-bottom: 15px;
+        }
+
+        .calc-keyboard {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calc-key {
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .calc-key:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .calc-key.operator {
+            background-color: #6366f1;
+        }
+
+        .calc-key.operator:hover {
+            background-color: #4f46e5;
+        }
+
+        .calc-key.equal {
+            background-color: #8b5cf6;
+        }
+
+        .calc-key.equal:hover {
+            background-color: #7c3aed;
+        }
+
+        .calc-key.func {
+            background-color: rgba(255, 255, 255, 0.15);
+            font-size: 18px;
+        }
+
+        .calc-key.func:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 文件资源管理器样式 */
+        #explorer-window .window-content {
+            display: flex;
+        }
+
+        .explorer-sidebar {
+            width: 220px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px 10px;
+        }
+
+        .explorer-menu-group {
+            margin-bottom: 20px;
+        }
+
+        .explorer-menu-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-left: 10px;
+        }
+
+        .explorer-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .explorer-menu-item:hover, .explorer-menu-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .explorer-menu-item i {
+            font-size: 18px;
+            color: #8b5cf6;
+        }
+
+        .explorer-main {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .explorer-main::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .explorer-main::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .explorer-main::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .explorer-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .explorer-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .explorer-tool-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explorer-tool-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .explorer-content-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .explorer-file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .explorer-file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .explorer-file-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .explorer-file-item i {
+            font-size: 32px;
+            color: #6366f1;
+        }
+
+        .explorer-file-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .explorer-file-name {
+            color: white;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .explorer-file-desc {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+        }
+
+        /* 关于系统窗口样式 */
+        #about-window .window-content {
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        #about-window .window-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #about-window .window-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #about-window .window-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .about-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .about-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+        }
+
+        .about-title {
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .about-version {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .about-desc {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 15px;
+            text-align: center;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+
+        .update-section {
+            margin-bottom: 30px;
+        }
+
+        .update-section-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .update-item {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .update-item summary {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .update-item summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .update-item summary::after {
+            content: '\f282';
+            font-family: 'bootstrap-icons';
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: transform 0.2s ease;
+        }
+
+        .update-item[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        .update-content {
+            margin-top: 15px;
+            padding-left: 10px;
+        }
+
+        .update-content p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 5px;
+        }
+
+        /* 右键菜单 */
+        #context-menu {
+            position: fixed;
+            width: 200px;
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 8px 0;
+            z-index: 99999;
+            display: none;
+        }
+
+        #context-menu.show {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 8px 15px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .context-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 5px 0;
+        }
+
+        /* 动画类 */
+        .animated {
+            animation-duration: 0.3s;
+            animation-fill-mode: both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fadeIn {
+            animation-name: fadeIn;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .slideInUp {
+            animation-name: slideInUp;
+        }
+    </style>
+</head>
+<body>
+    <div id="yxxsu-os">
+        <!-- 桌面图标区域 -->
+        <div id="desktop-shortcuts">
+            <div class="desktop-icon" onclick="openApp('explorer')">
+                <div class="icon"><i class="bi bi-folder-fill"></i></div>
+                <div class="name">此电脑</div>
+            </div>
+            <div class="desktop-icon" onclick="openApp('calc')">
+                <div class="icon"><i class="bi bi-calculator-fill"></i></div>
+                <div class="name">计算器</div>
+            </div>
+            <div class="desktop-icon" onclick="openApp('about')">
+                <div class="icon"><i class="bi bi-info-circle-fill"></i></div>
+                <div class="name">关于Yxxsu OS</div>
+            </div>
+            <div class="desktop-icon">
+                <div class="icon"><i class="bi bi-trash3-fill"></i></div>
+                <div class="name">回收站</div>
+            </div>
+        </div>
+
+        <!-- 开始菜单 -->
+        <div id="start-menu">
+            <div class="start-menu-sidebar">
+                <div class="sidebar-top">
+                    <div class="sidebar-btn" onclick="openApp('explorer')">
+                        <i class="bi bi-folder-fill"></i>
+                    </div>
+                    <div class="sidebar-btn" onclick="openApp('calc')">
+                        <i class="bi bi-calculator-fill"></i>
+                    </div>
+                    <div class="sidebar-btn">
+                        <i class="bi bi-gear-fill"></i>
+                    </div>
+                </div>
+                <div class="sidebar-bottom">
+                    <div class="sidebar-btn" onclick="openApp('about')">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+                    <div class="sidebar-btn">
+                        <i class="bi bi-power"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="start-menu-main">
+                <div class="start-menu-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="搜索应用和文件" id="search-input">
+                </div>
+
+                <h3 class="menu-section-title">固定应用</h3>
+                <div class="app-grid">
+                    <div class="app-grid-item" onclick="openApp('explorer')">
+                        <div class="app-icon"><i class="bi bi-folder-fill"></i></div>
+                        <div class="app-name">文件资源管理器</div>
+                    </div>
+                    <div class="app-grid-item" onclick="openApp('calc')">
+                        <div class="app-icon"><i class="bi bi-calculator-fill"></i></div>
+                        <div class="app-name">计算器</div>
+                    </div>
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-browser-chrome"></i></div>
+                        <div class="app-name">浏览器</div>
+                    </div>
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-image-fill"></i></div>
+                        <div class="app-name">照片</div>
+                    </div>
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-music-note-beamed"></i></div>
+                        <div class="app-name">音乐</div>
+                    </div>
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-camera-video-fill"></i></div>
+                        <div class="app-name">视频</div>
+                    </div>
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-gear-fill"></i></div>
+                        <div class="app-name">设置</div>
+                    </div>
+                    <div class="app-grid-item" onclick="openApp('about')">
+                        <div class="app-icon"><i class="bi bi-info-circle-fill"></i></div>
+                        <div class="app-name">关于系统</div>
+                    </div>
+                </div>
+
+                <h3 class="menu-section-title">推荐应用</h3>
+                <div class="app-grid">
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-terminal-fill"></i></div>
+                        <div class="app-name">终端</div>
+                    </div>
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-code-slash"></i></div>
+                        <div class="app-name">代码编辑器</div>
+                    </div>
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-paint-bucket"></i></div>
+                        <div class="app-name">画图</div>
+                    </div>
+                    <div class="app-grid-item disabled">
+                        <div class="app-icon"><i class="bi bi-journal-text"></i></div>
+                        <div class="app-name">记事本</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 窗口区域 -->
+        <!-- 计算器窗口 -->
+        <div class="window" id="calc-window" data-app="calc">
+            <div class="window-titlebar">
+                <div class="titlebar-left">
+                    <i class="bi bi-calculator-fill titlebar-icon"></i>
+                    <span class="titlebar-name">计算器</span>
+                </div>
+                <div class="titlebar-controls">
+                    <div class="window-btn min-btn" onclick="minApp('calc')">
+                        <i class="bi bi-dash"></i>
+                    </div>
+                    <div class="window-btn max-btn" onclick="maxApp('calc')">
+                        <i class="bi bi-app"></i>
+                    </div>
+                    <div class="window-btn close" onclick="closeApp('calc')">
+                        <i class="bi bi-x-lg"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="window-content">
+                <input type="text" id="calc-input" readonly value="0">
+                <div class="calc-keyboard">
+                    <div class="calc-key func" onclick="calcClear()">C</div>
+                    <div class="calc-key func" onclick="calcDelete()"><i class="bi bi-backspace"></i></div>
+                    <div class="calc-key func" onclick="calcAppend('%')">%</div>
+                    <div class="calc-key operator" onclick="calcAppend('/')">/</div>
+                    <div class="calc-key" onclick="calcAppend('7')">7</div>
+                    <div class="calc-key" onclick="calcAppend('8')">8</div>
+                    <div class="calc-key" onclick="calcAppend('9')">9</div>
+                    <div class="calc-key operator" onclick="calcAppend('*')">×</div>
+                    <div class="calc-key" onclick="calcAppend('4')">4</div>
+                    <div class="calc-key" onclick="calcAppend('5')">5</div>
+                    <div class="calc-key" onclick="calcAppend('6')">6</div>
+                    <div class="calc-key operator" onclick="calcAppend('-')">-</div>
+                    <div class="calc-key" onclick="calcAppend('1')">1</div>
+                    <div class="calc-key" onclick="calcAppend('2')">2</div>
+                    <div class="calc-key" onclick="calcAppend('3')">3</div>
+                    <div class="calc-key operator" onclick="calcAppend('+')">+</div>
+                    <div class="calc-key func" onclick="calcPower()">x²</div>
+                    <div class="calc-key" onclick="calcAppend('0')">0</div>
+                    <div class="calc-key" onclick="calcAppend('.')">.</div>
+                    <div class="calc-key equal" onclick="calcEqual()">=</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文件资源管理器窗口 -->
+        <div class="window" id="explorer-window" data-app="explorer">
+            <div class="window-titlebar">
+                <div class="titlebar-left">
+                    <i class="bi bi-folder-fill titlebar-icon"></i>
+                    <span class="titlebar-name">文件资源管理器</span>
+                </div>
+                <div class="titlebar-controls">
+                    <div class="window-btn min-btn" onclick="minApp('explorer')">
+                        <i class="bi bi-dash"></i>
+                    </div>
+                    <div class="window-btn max-btn" onclick="maxApp('explorer')">
+                        <i class="bi bi-app"></i>
+                    </div>
+                    <div class="window-btn close" onclick="closeApp('explorer')">
+                        <i class="bi bi-x-lg"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="explorer-sidebar">
+                    <div class="explorer-menu-group">
+                        <div class="explorer-menu-title">快速访问</div>
+                        <div class="explorer-menu-item active">
+                            <i class="bi bi-house-fill"></i>
+                            <span>桌面</span>
+                        </div>
+                        <div class="explorer-menu-item">
+                            <i class="bi bi-download"></i>
+                            <span>下载</span>
+                        </div>
+                        <div class="explorer-menu-item">
+                            <i class="bi bi-image-fill"></i>
+                            <span>图片</span>
+                        </div>
+                        <div class="explorer-menu-item">
+                            <i class="bi bi-music-note-beamed"></i>
+                            <span>音乐</span>
+                        </div>
+                        <div class="explorer-menu-item">
+                            <i class="bi bi-camera-video-fill"></i>
+                            <span>视频</span>
+                        </div>
+                    </div>
+                    <div class="explorer-menu-group">
+                        <div class="explorer-menu-title">此电脑</div>
+                        <div class="explorer-menu-item">
+                            <i class="bi bi-device-ssd-fill"></i>
+                            <span>系统 (C:)</span>
+                        </div>
+                        <div class="explorer-menu-item">
+                            <i class="bi bi-device-hdd-fill"></i>
+                            <span>文档 (D:)</span>
+                        </div>
+                        <div class="explorer-menu-item">
+                            <i class="bi bi-device-hdd-fill"></i>
+                            <span>娱乐 (E:)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="explorer-main">
+                    <div class="explorer-path">
+                        <i class="bi bi-house-fill"></i>
+                        <i class="bi bi-chevron-right" style="font-size: 12px; color: rgba(255,255,255,0.5);"></i>
+                        <span>桌面</span>
+                    </div>
+                    <div class="explorer-toolbar">
+                        <div class="explorer-tool-btn">
+                            <i class="bi bi-arrow-left"></i>
+                        </div>
+                        <div class="explorer-tool-btn">
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                        <div class="explorer-tool-btn">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </div>
+                        <div class="explorer-tool-btn">
+                            <i class="bi bi-arrow-up"></i>
+                        </div>
+                    </div>
+                    <h2 class="explorer-content-title">常用文件夹</h2>
+                    <div class="explorer-file-grid">
+                        <div class="explorer-file-item">
+                            <i class="bi bi-folder-fill"></i>
+                            <div class="explorer-file-info">
+                                <div class="explorer-file-name">桌面</div>
+                                <div class="explorer-file-desc">文件夹</div>
+                            </div>
+                        </div>
+                        <div class="explorer-file-item">
+                            <i class="bi bi-folder-fill"></i>
+                            <div class="explorer-file-info">
+                                <div class="explorer-file-name">下载</div>
+                                <div class="explorer-file-desc">文件夹</div>
+                            </div>
+                        </div>
+                        <div class="explorer-file-item">
+                            <i class="bi bi-folder-fill"></i>
+                            <div class="explorer-file-info">
+                                <div class="explorer-file-name">文档</div>
+                                <div class="explorer-file-desc">文件夹</div>
+                            </div>
+                        </div>
+                        <div class="explorer-file-item">
+                            <i class="bi bi-folder-fill"></i>
+                            <div class="explorer-file-info">
+                                <div class="explorer-file-name">图片</div>
+                                <div class="explorer-file-desc">文件夹</div>
+                            </div>
+                        </div>
+                        <div class="explorer-file-item">
+                            <i class="bi bi-folder-fill"></i>
+                            <div class="explorer-file-info">
+                                <div class="explorer-file-name">音乐</div>
+                                <div class="explorer-file-desc">文件夹</div>
+                            </div>
+                        </div>
+                        <div class="explorer-file-item">
+                            <i class="bi bi-folder-fill"></i>
+                            <div class="explorer-file-info">
+                                <div class="explorer-file-name">视频</div>
+                                <div class="explorer-file-desc">文件夹</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关于系统窗口 -->
+        <div class="window" id="about-window" data-app="about">
+            <div class="window-titlebar">
+                <div class="titlebar-left">
+                    <i class="bi bi-info-circle-fill titlebar-icon"></i>
+                    <span class="titlebar-name">关于Yxxsu OS</span>
+                </div>
+                <div class="titlebar-controls">
+                    <div class="window-btn min-btn" onclick="minApp('about')">
+                        <i class="bi bi-dash"></i>
+                    </div>
+                    <div class="window-btn max-btn" onclick="maxApp('about')">
+                        <i class="bi bi-app"></i>
+                    </div>
+                    <div class="window-btn close" onclick="closeApp('about')">
+                        <i class="bi bi-x-lg"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="about-header">
+                    <div class="about-logo"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <h1 class="about-title">Yxxsu OS</h1>
+                    <p class="about-version">版本 v1.0.0 正式版</p>
+                    <p class="about-desc">基于网页技术构建的轻量化桌面操作系统，提供流畅的交互体验和丰富的功能，完全重构设计与交互逻辑，打造全新的网页端系统体验。</p>
+                </div>
+
+                <div class="update-section">
+                    <h3 class="update-section-title">更新日志</h3>
+                    <details class="update-item" open>
+                        <summary><span>v1.0.0</span> 系统正式发布，核心功能完善</summary>
+                        <div class="update-content">
+                            <p>- 完成系统核心框架搭建，实现桌面、任务栏、开始菜单三大核心模块</p>
+                            <p>- 新增文件资源管理器应用，完成基础界面与导航功能</p>
+                            <p>- 新增计算器应用，支持基础四则运算、平方、百分比等功能</p>
+                            <p>- 新增关于系统应用，包含系统介绍与更新记录</p>
+                            <p>- 实现窗口拖动、最大化、最小化、关闭、置顶等完整窗口管理功能</p>
+                            <p>- 实现任务栏窗口管理，支持点击切换、最小化还原</p>
+                            <p>- 实现桌面右键菜单，包含基础操作功能</p>
+                            <p>- 优化窗口拖动边界限制，防止窗口拖出屏幕外</p>
+                            <p>- 优化动画效果，提升系统流畅度与视觉体验</p>
+                            <p>- 修复窗口重复打开的问题，优化应用聚焦逻辑</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务栏 -->
+        <div id="taskbar">
+            <div class="taskbar-left">
+                <div id="start-btn">
+                    <i class="bi bi-windows"></i>
+                </div>
+            </div>
+            <div class="taskbar-center" id="taskbar-apps"></div>
+            <div class="taskbar-right">
+                <div id="time-display"></div>
+                <div id="show-desktop"></div>
+            </div>
+        </div>
+
+        <!-- 右键菜单 -->
+        <div id="context-menu">
+            <div class="context-menu-item" onclick="refreshDesktop()">
+                <i class="bi bi-arrow-clockwise"></i>
+                <span>刷新</span>
+            </div>
+            <div class="context-menu-divider"></div>
+            <div class="context-menu-item" onclick="openApp('about')">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>关于系统</span>
+            </div>
+            <div class="context-menu-item">
+                <i class="bi bi-paint-bucket"></i>
+                <span>个性化设置</span>
+            </div>
+            <div class="context-menu-divider"></div>
+            <div class="context-menu-item" onclick="hideAllWindows()">
+                <i class="bi bi-fullscreen-exit"></i>
+                <span>显示桌面</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let zIndex = 100;
+        let calcExpression = '';
+        let isCalcResult = false;
+
+        // 时间更新
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
+            document.getElementById('time-display').innerHTML = `${hours}:${minutes}<br/>${year}/${month}/${day} ${week}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 开始菜单控制
+        const startBtn = document.getElementById('start-btn');
+        const startMenu = document.getElementById('start-menu');
+        startBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startMenu.classList.toggle('show');
+            startBtn.classList.toggle('show');
+        });
+
+        // 点击空白关闭开始菜单和右键菜单
+        document.addEventListener('click', () => {
+            startMenu.classList.remove('show');
+            startBtn.classList.remove('show');
+            hideContextMenu();
+        });
+        startMenu.addEventListener('click', (e) => e.stopPropagation());
+
+        // 窗口拖动逻辑
+        const page = document.documentElement;
+        let isDragging = false;
+        let currentWindow = null;
+        let deltaX = 0;
+        let deltaY = 0;
+
+        // 事件委托绑定拖动事件
+        document.addEventListener('mousedown', (e) => {
+            const titlebar = e.target.closest('.window-titlebar');
+            if (titlebar) {
+                e.preventDefault();
+                currentWindow = titlebar.closest('.window');
+                // 置顶窗口
+                setWindowTop(currentWindow);
+                // 计算偏移量
+                const rect = currentWindow.getBoundingClientRect();
+                deltaX = e.clientX - rect.left;
+                deltaY = e.clientY - rect.top;
+                isDragging = true;
+            }
+        });
+
+        page.addEventListener('mousemove', (e) => {
+            if (isDragging && currentWindow && !currentWindow.classList.contains('max')) {
+                e.preventDefault();
+                // 计算新位置
+                let newLeft = e.clientX - deltaX;
+                let newTop = e.clientY - deltaY;
+                // 边界限制
+                const winWidth = currentWindow.offsetWidth;
+                const winHeight = currentWindow.offsetHeight;
+                const maxLeft = window.innerWidth - 50;
+                const maxTop = window.innerHeight - 100;
+                newLeft = Math.max(-winWidth + 50, Math.min(newLeft, maxLeft));
+                newTop = Math.max(0, Math.min(newTop, maxTop));
+                // 设置位置
+                currentWindow.style.left = `${newLeft}px`;
+                currentWindow.style.top = `${newTop}px`;
+            }
+        });
+
+        page.addEventListener('mouseup', () => {
+            isDragging = false;
+            currentWindow = null;
+        });
+
+        // 窗口置顶
+        function setWindowTop(win) {
+            zIndex++;
+            win.style.zIndex = zIndex;
+            // 更新任务栏激活状态
+            const appName = win.dataset.app;
+            document.querySelectorAll('.taskbar-app-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const taskItem = document.querySelector(`.taskbar-app-item[data-app="${appName}"]`);
+            if (taskItem) taskItem.classList.add('active');
+        }
+
+        // 打开应用
+        function openApp(appName) {
+            const win = document.getElementById(`${appName}-window`);
+            const taskbarApps = document.getElementById('taskbar-apps');
+            
+            // 关闭开始菜单
+            startMenu.classList.remove('show');
+            startBtn.classList.remove('show');
+
+            // 如果应用已打开
+            if (document.querySelector(`.taskbar-app-item[data-app="${appName}"]`)) {
+                // 如果是最小化状态，还原
+                if (win.classList.contains('min')) {
+                    minApp(appName);
+                }
+                // 置顶
+                setWindowTop(win);
+                return;
+            }
+
+            // 新建任务栏图标
+            const appIconMap = {
+                calc: 'bi-calculator-fill',
+                explorer: 'bi-folder-fill',
+                about: 'bi-info-circle-fill'
+            };
+            const taskItem = document.createElement('div');
+            taskItem.className = 'taskbar-app-item active';
+            taskItem.dataset.app = appName;
+            taskItem.innerHTML = `<i class="bi ${appIconMap[appName]}"></i>`;
+            taskItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                minApp(appName);
+            });
+            taskbarApps.appendChild(taskItem);
+
+            // 显示窗口
+            win.classList.add('show-begin');
+            setTimeout(() => {
+                win.classList.add('show');
+            }, 10);
+            // 重置窗口位置
+            if (!win.classList.contains('max')) {
+                win.style.top = '10%';
+                win.style.left = '15%';
+            }
+            // 置顶
+            setWindowTop(win);
+            // 点击窗口置顶
+            win.addEventListener('mousedown', () => setWindowTop(win));
+        }
+
+        // 最小化应用
+        function minApp(appName) {
+            const win = document.getElementById(`${appName}-window`);
+            const taskItem = document.querySelector(`.taskbar-app-item[data-app="${appName}"]`);
+            
+            if (win.classList.contains('min')) {
+                // 还原
+                win.classList.remove('min');
+                taskItem.classList.remove('min');
+                win.classList.add('show');
+                setWindowTop(win);
+            } else {
+                // 最小化
+                win.classList.add('min');
+                win.classList.remove('show');
+                taskItem.classList.add('min');
+                taskItem.classList.remove('active');
+            }
+        }
+
+        // 最大化应用
+        function maxApp(appName) {
+            const win = document.getElementById(`${appName}-window`);
+            const maxBtn = win.querySelector('.max-btn i');
+            
+            if (win.classList.contains('max')) {
+                // 还原
+                win.classList.remove('max');
+                maxBtn.className = 'bi bi-app';
+            } else {
+                // 最大化
+                win.classList.add('max');
+                maxBtn.className = 'bi bi-fullscreen';
+            }
+        }
+
+        // 关闭应用
+        function closeApp(appName) {
+            const win = document.getElementById(`${appName}-window`);
+            const taskItem = document.querySelector(`.taskbar-app-item[data-app="${appName}"]`);
+            
+            win.classList.remove('show');
+            setTimeout(() => {
+                win.classList.remove('show-begin');
+            }, 200);
+            if (taskItem) taskItem.remove();
+
+            // 重置计算器
+            if (appName === 'calc') {
+                calcClear();
+            }
+        }
+
+        // 隐藏所有窗口
+        function hideAllWindows() {
+            document.querySelectorAll('.window').forEach(win => {
+                if (win.classList.contains('show')) {
+                    minApp(win.dataset.app);
+                }
+            });
+        }
+
+        // 显示桌面按钮
+        document.getElementById('show-desktop').addEventListener('click', hideAllWindows);
+
+        // 右键菜单
+        const contextMenu = document.getElementById('context-menu');
+        document.getElementById('yxxsu-os').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // 计算位置
+            let x = e.clientX;
+            let y = e.clientY;
+            const menuWidth = contextMenu.offsetWidth;
+            const menuHeight = contextMenu.offsetHeight;
+            // 边界限制
+            if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 10;
+            if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 10;
+            // 显示菜单
+            contextMenu.style.left = `${x}px`;
+            contextMenu.style.top = `${y}px`;
+            contextMenu.classList.add('show');
+        });
+
+        function hideContextMenu() {
+            contextMenu.classList.remove('show');
+        }
+
+        contextMenu.addEventListener('click', (e) => e.stopPropagation());
+        contextMenu.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // 刷新桌面
+        function refreshDesktop() {
+            const shortcuts = document.getElementById('desktop-shortcuts');
+            shortcuts.classList.remove('fadeIn');
+            void shortcuts.offsetWidth; // 触发重绘
+            shortcuts.classList.add('fadeIn');
+            hideContextMenu();
+        }
+
+        // 计算器功能
+        function calcAppend(val) {
+            const input = document.getElementById('calc-input');
+            // 如果是结果状态，先清空
+            if (isCalcResult) {
+                calcExpression = '';
+                isCalcResult = false;
+            }
+            // 替换乘号
+            if (val === '×') val = '*';
+            // 处理0开头
+            if (calcExpression === '' && val === '0') {
+                input.value = '0';
+                return;
+            }
+            calcExpression += val;
+            input.value = calcExpression === '' ? '0' : calcExpression.replace('*', '×');
+        }
+
+        function calcClear() {
+            calcExpression = '';
+            isCalcResult = false;
+            document.getElementById('calc-input').value = '0';
+        }
+
+        function calcDelete() {
+            const input = document.getElementById('calc-input');
+            if (isCalcResult) {
+                calcClear();
+                return;
+            }
+            calcExpression = calcExpression.slice(0, -1);
+            input.value = calcExpression === '' ? '0' : calcExpression.replace('*', '×');
+        }
+
+        function calcPower() {
+            const input = document.getElementById('calc-input');
+            if (calcExpression === '') return;
+            try {
+                const num = eval(calcExpression);
+                const result = Math.pow(num, 2);
+                input.value = result;
+                calcExpression = String(result);
+                isCalcResult = true;
+            } catch (e) {
+                input.value = '错误';
+                calcExpression = '';
+            }
+        }
+
+        function calcEqual() {
+            const input = document.getElementById('calc-input');
+            if (calcExpression === '') return;
+            try {
+                const result = eval(calcExpression);
+                input.value = result;
+                calcExpression = String(result);
+                isCalcResult = true;
+            } catch (e) {
+                input.value = '错误';
+                calcExpression = '';
+            }
+        }
+
+        // 搜索功能
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase().trim();
+            const appItems = document.querySelectorAll('.app-grid-item');
+            appItems.forEach(item => {
+                const appName = item.querySelector('.app-name').textContent.toLowerCase();
+                if (keyword === '' || appName.includes(keyword)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // 打开关于页面
+        openApp('about');
+    </script>
+</body>
+</html>
